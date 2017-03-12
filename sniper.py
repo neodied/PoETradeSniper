@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 
 CHANGE_URL = 'http://api.poe.ninja/api/Data/GetStats'
 POE_API = 'http://www.pathofexile.com/api/public-stash-tabs'
@@ -15,7 +16,7 @@ def filter(item):
         return False
 
 def formatItem(item, stash):
-    return "{}\t{}\t{}\t{}".format(item["note"], stash["accountName"], stash["lastCharacterName"], item["league"])
+    return "[{}]{}\t{}\t{}\t{}".format(time.strftime('%l:%M%p %Z on %b %d, %Y'),item["note"], stash["accountName"], stash["lastCharacterName"], item["league"])
 
 
 changeId = getLastestChangeID();
