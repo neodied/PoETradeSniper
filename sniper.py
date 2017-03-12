@@ -37,10 +37,12 @@ while True:
     j = r.json()
     changeId = j['next_change_id']
 
+    download_time = time.time() - start_time
+
     for stash in j['stashes']:
         for item in stash['items']:
             if(filter(item)):
                 print(formatItem(item, stash))
 
-    end_time = time.time() - start_time
-    print('It took {}s'.format(end_time))
+    end_time = time.time() - start_time - download_time
+    print('Download took {}s; Processing took {}s'.format(download_time, end_time))
