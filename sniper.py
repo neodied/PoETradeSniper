@@ -47,4 +47,6 @@ while True:
     end_time = time.time() - start_time - download_time
 
     print('Download took {}s; Processing took {}s'.format(download_time, end_time))
-    if((end_time + download_time) < 1.0 ) time.sleep(1.0 - (end_time + download_time))
+    
+    if((end_time + download_time) < 1.0 ):
+        time.sleep(1.0 - (end_time + download_time))
