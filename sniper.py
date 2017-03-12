@@ -19,13 +19,16 @@ def formatItem(item, stash):
     return "[{}]{}\t{}\t{}\t{}".format(time.strftime('%l:%M%p %Z on %b %d, %Y'),item["note"], stash["accountName"], stash["lastCharacterName"], item["league"])
 
 
+
+print('Grabbing latest Change ID from poe.ninja')
 changeId = getLastestChangeID();
+print('Starting Item search starting at {}'.format(changeId))
 
 while True:
+    start_time = time.time()
     try:
         r = requests.get('{}/?id={}.gz'.format(POE_API, changeId))
-
-        print(changeId)
+        #print(changeId)
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception as e:
@@ -38,3 +41,6 @@ while True:
         for item in stash['items']:
             if(filter(item)):
                 print(formatItem(item, stash))
+
+    end_time = time.time() - start_time
+    print('It took {}s'.format(end_time))
