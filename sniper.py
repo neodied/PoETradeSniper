@@ -36,5 +36,4 @@ while True:
     for stash in j['stashes']:
         for item in stash['items']:
             if(filter(item)):
-                print(item)
                 print(formatItem(item, stash))
