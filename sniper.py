@@ -1,10 +1,20 @@
 import requests
 # import json
 import time
-from enum import Enum
 
 CHANGE_URL = 'http://api.poe.ninja/api/Data/GetStats'
 POE_API = 'http://www.pathofexile.com/api/public-stash-tabs'
+
+TYPE_normal = 0
+TYPE_magic = 1
+TYPE_rare = 2
+TYPE_unique = 3
+TYPE_gem = 4
+TYPE_currency = 5
+TYPE_divination_card = 6
+TYPE_quest_item = 7
+TYPE_prophecy = 8
+TYPE_relic = 9
 
 sample_ES_body_armour = {
                     "verified": False,
@@ -192,7 +202,6 @@ body_armour_bases = {"Plate Vest",
                      "Sacrificial Garb",
                      "Golden Mantle"}
 
-
 body_armour_max_rolls = {"total armour": 2935,
                          "total evasion": 2849,
                          "total ES": 986,
@@ -209,49 +218,71 @@ body_armour_max_rolls = {"total armour": 2935,
                          "phys reflect": 50}
 
 
-class FrameType(Enum):
-    normal = 0
-    magic = 1
-    rare = 2
-    unique = 3
-    gem = 4
-    currency = 5
-    divination_card = 6
-    quest_item = 7
-    prophecy = 8
-    relic = 9
-
-
-def parse_property(prop_str=""):
+def parse_raw_mod(prop_str=""):
     if prop_str.startswith("Reflects"):
-        return "phys reflect", prop_str.split()[1]
+        return "phys reflect", int(prop_str.split()[1])
     elif prop_str.endswith("% increased Energy Shield"):
-        return "pct inc ES", prop_str.split("%")[0]
+        return "pct inc ES", int(prop_str.split("%")[0])
     elif prop_str.endswith("to maximum Energy Shield"):
-        return "plus max ES", prop_str.lstrip("+").split()[0]
+        return "plus max ES", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("to maximum Life"):
-        return "plus max life", prop_str.lstrip("+").split()[0]
+        return "plus max life", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("to maximum Mana"):
-        return "plus max mana", prop_str.lstrip("+").split()[0]
+        return "plus max mana", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("% to Chaos Resistance"):
-        return "plus chaos res", prop_str.lstrip("+").split("%")[0]
+        return "plus chaos res", int(prop_str.lstrip("+").split("%")[0])
     elif prop_str.endswith("% to Cold Resistance"):
-        return "plus cold res", prop_str.lstrip("+").split("%")[0]
+        return "plus cold res", int(prop_str.lstrip("+").split("%")[0])
     elif prop_str.endswith("% to Fire Resistance"):
-        return "plus fire res", prop_str.lstrip("+").split("%")[0]
+        return "plus fire res", int(prop_str.lstrip("+").split("%")[0])
     elif prop_str.endswith("% to Lightning Resistance"):
-        return "plus light res", prop_str.lstrip("+").split("%")[0]
+        return "plus light res", int(prop_str.lstrip("+").split("%")[0])
+    elif prop_str.endswith("% to all Elemental Resistances"):
+        return "plus all res", int(prop_str.lstrip("+").split("%")[0])
     elif prop_str.endswith("to Intelligence"):
-        return "plus int", prop_str.lstrip("+").split()[0]
+        return "plus int", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("Life Regenerated per second"):
-        return "plus life regen", prop_str.split()[0]
+        return "plus life regen", int(prop_str.split()[0])
     elif prop_str.endswith("reduced Attribute Requirements"):
-        return "reduced req", prop_str.split("%")[0]
+        return "reduced req", int(prop_str.split("%")[0])
     elif prop_str.endswith("increased Stun and Block Recovery"):
-        return "stun recovery", prop_str.split("%")[0]
+        return "stun recovery", int(prop_str.split("%")[0])
     else:
         print("Unknown property: {}".format(prop_str))
         return None, None
+
+
+def calc_summary_stats(raw_item):
+    armour = 0
+    evasion = 0
+    ES = 0
+    if "properties" in raw_item:
+        for prop in raw_item["properties"]:
+            if prop["name"] == "Armour":
+                armour = int(prop["values"][0][0])
+            elif prop["name"] == "Evasion":
+                evasion = int(prop["values"][0][0])
+            elif prop["name"] == "Energy Shield":
+                ES = int(prop["values"][0][0])
+
+    combined_mods = raw_item["explicitMods"] if "explicitMods" in raw_item else []
+    combined_mods = combined_mods + raw_item["implicitMods"] if "implicitMods" in raw_item else combined_mods
+
+    parsed_mods = dict([parse_raw_mod(mod) for mod in combined_mods])
+
+    total_ele_res = parsed_mods["plus all res"] if "plus all res" in parsed_mods else 0
+    total_ele_res = total_ele_res + parsed_mods["plus cold res"] if "plus cold res" in parsed_mods else total_ele_res
+    total_ele_res = total_ele_res + parsed_mods["plus fire res"] if "plus fire res" in parsed_mods else total_ele_res
+    total_ele_res = total_ele_res + parsed_mods["plus light res"] if "plus light res" in parsed_mods else total_ele_res
+
+    summary_stats = parsed_mods
+    summary_stats["total armour"] = armour
+    summary_stats["total evasion"] = evasion
+    summary_stats["total ES"] = ES
+    summary_stats["total ele res"] = total_ele_res
+
+    print(summary_stats)
+    return summary_stats
 
 
 def get_latest_change_id():
@@ -262,14 +293,15 @@ def get_latest_change_id():
 def flag_interesting_item(item):
     if item['typeLine'] == 'Hubris' and 'note' in item:
         return True
-    elif FrameType(item['frameType']) in [FrameType.normal, FrameType.magic, FrameType.rare]:
+    elif item['frameType'] in [TYPE_normal, TYPE_magic, TYPE_rare] and item['typeLine'] in body_armour_bases:
+        print(calc_summary_stats(item))
         return True
     else:
         return False
 
 
 def format_item(item, stash):
-    return "[{}]{}\t{}\t{}".format(time.strftime('%H:%M:%S'), item["typeLine"], item["note"],
+    return "[{}]{}\t{}\t{}".format(time.strftime('%H:%M:%S'), item["typeLine"], item["note"] if "note" in item else "",
                                    stash["lastCharacterName"], )
 
 
