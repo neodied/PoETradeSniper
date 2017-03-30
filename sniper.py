@@ -6,6 +6,85 @@ from enum import Enum
 CHANGE_URL = 'http://api.poe.ninja/api/Data/GetStats'
 POE_API = 'http://www.pathofexile.com/api/public-stash-tabs'
 
+sample_ES_body_armour = {
+                    "verified": False,
+                    "w": 2,
+                    "h": 3,
+                    "ilvl": 85,
+                    "icon": "http://web.poecdn.com/image/Art/2DItems/Armours/BodyArmours/BodyStrDexInt1C.png?scale=1&w=2&h=3&v=5a4eb9d863bef835aa3d9cc9224f51a53",
+                    "league": "Legacy",
+                    "id": "23a16eea8b41c3748984eeeffef8860397ab41f893e24f390bd3750adb888711",
+                    "sockets": [
+                        {
+                            "group": 0,
+                            "attr": "I"
+                        },
+                        {
+                            "group": 1,
+                            "attr": "I"
+                        }
+                    ],
+                    "name": "",
+                    "typeLine": "<<set:MS>><<set:M>><<set:S>>Glowing Vaal Regalia of the Walrus",
+                    "identified": True,
+                    "corrupted": False,
+                    "lockedToCharacter": False,
+                    "properties": [
+                        {
+                            "name": "Quality",
+                            "values": [
+                                [
+                                    "+9%",
+                                    1
+                                ]
+                            ],
+                            "displayMode": 0,
+                            "type": 6
+                        },
+                        {
+                            "name": "Energy Shield",
+                            "values": [
+                                [
+                                    "207",
+                                    1
+                                ]
+                            ],
+                            "displayMode": 0,
+                            "type": 18
+                        }
+                    ],
+                    "requirements": [
+                        {
+                            "name": "Level",
+                            "values": [
+                                [
+                                    "68",
+                                    0
+                                ]
+                            ],
+                            "displayMode": 0
+                        },
+                        {
+                            "name": "Int",
+                            "values": [
+                                [
+                                    "194",
+                                    0
+                                ]
+                            ],
+                            "displayMode": 1
+                        }
+                    ],
+                    "explicitMods": [
+                        "+15 to maximum Energy Shield",
+                        "+34% to Cold Resistance"
+                    ],
+                    "frameType": 1,
+                    "x": 3,
+                    "y": 0,
+                    "inventoryId": "Stash21",
+                    "socketedItems": []
+                }
 
 body_armour_bases = {"Plate Vest",
                      "Chestplate",
@@ -114,6 +193,22 @@ body_armour_bases = {"Plate Vest",
                      "Golden Mantle"}
 
 
+body_armour_max_rolls = {"total armour": 2935,
+                         "total evasion": 2849,
+                         "total ES": 986,
+                         "plus strength": 55,
+                         "plus dexterity": 55,
+                         "plus intelligence": 55,
+                         "plus max mana": 73,
+                         "plus max life": 119,
+                         "plus chaos res": 35,
+                         "total ele res": 144,
+                         "plus life regen": 7,
+                         "reduced req": 32,
+                         "stun recovery": 45,
+                         "phys reflect": 50}
+
+
 class FrameType(Enum):
     normal = 0
     magic = 1
@@ -127,36 +222,37 @@ class FrameType(Enum):
     relic = 9
 
 
-def parse_property(property=""):
-    if property.startswith("Reflects"):
-        return "phys reflect", property.lstrip("Reflects ").split()[0]
-    elif property.endswith("% increased Energy Shield"):
-        return "pct inc ES", property.split("%")[0]
-    elif property.endswith("to maximum Energy Shield"):
-        return "plus max ES", property.lstrip("+").split()[0]
-    elif property.endswith("to maximum Life"):
-        return "plus max life", property.lstrip("+").split()[0]
-    elif property.endswith("to maximum Mana"):
-        return "plus max mana", property.lstrip("+").split()[0]
-    elif property.endswith("% to Chaos Resistance"):
-        return "plus chaos res", property.lstrip("+").split("%")[0]
-    elif property.endswith("% to Cold Resistance"):
-        return "plus cold res", property.lstrip("+").split("%")[0]
-    elif property.endswith("% to Fire Resistance"):
-        return "plus fire res", property.lstrip("+").split("%")[0]
-    elif property.endswith("% to Lightning Resistance"):
-        return "plus light res", property.lstrip("+").split("%")[0]
-    elif property.endswith("to Intelligence"):
-        return "plus int", property.lstrip("+").split()[0]
-    elif property.endswith("Life Regenerated per second"):
-        return "plus life regen", property.split()[0]
-    elif property.endswith("reduced Attribute Requirements"):
-        return "reduced req", property.split("%")[0]
-    elif property.endswith("increased Stun and Block Recovery"):
-        return "stun recovery", property.split("%")[0]
+def parse_property(prop_str=""):
+    if prop_str.startswith("Reflects"):
+        return "phys reflect", prop_str.split()[1]
+    elif prop_str.endswith("% increased Energy Shield"):
+        return "pct inc ES", prop_str.split("%")[0]
+    elif prop_str.endswith("to maximum Energy Shield"):
+        return "plus max ES", prop_str.lstrip("+").split()[0]
+    elif prop_str.endswith("to maximum Life"):
+        return "plus max life", prop_str.lstrip("+").split()[0]
+    elif prop_str.endswith("to maximum Mana"):
+        return "plus max mana", prop_str.lstrip("+").split()[0]
+    elif prop_str.endswith("% to Chaos Resistance"):
+        return "plus chaos res", prop_str.lstrip("+").split("%")[0]
+    elif prop_str.endswith("% to Cold Resistance"):
+        return "plus cold res", prop_str.lstrip("+").split("%")[0]
+    elif prop_str.endswith("% to Fire Resistance"):
+        return "plus fire res", prop_str.lstrip("+").split("%")[0]
+    elif prop_str.endswith("% to Lightning Resistance"):
+        return "plus light res", prop_str.lstrip("+").split("%")[0]
+    elif prop_str.endswith("to Intelligence"):
+        return "plus int", prop_str.lstrip("+").split()[0]
+    elif prop_str.endswith("Life Regenerated per second"):
+        return "plus life regen", prop_str.split()[0]
+    elif prop_str.endswith("reduced Attribute Requirements"):
+        return "reduced req", prop_str.split("%")[0]
+    elif prop_str.endswith("increased Stun and Block Recovery"):
+        return "stun recovery", prop_str.split("%")[0]
     else:
-        print("Unknown property: {}".format(property))
+        print("Unknown property: {}".format(prop_str))
         return None, None
+
 
 def get_latest_change_id():
     r = requests.get(CHANGE_URL)
