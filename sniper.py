@@ -127,6 +127,37 @@ class FrameType(Enum):
     relic = 9
 
 
+def parse_property(property=""):
+    if property.startswith("Reflects"):
+        return "phys reflect", property.lstrip("Reflects ").split()[0]
+    elif property.endswith("% increased Energy Shield"):
+        return "pct inc ES", property.split("%")[0]
+    elif property.endswith("to maximum Energy Shield"):
+        return "plus max ES", property.lstrip("+").split()[0]
+    elif property.endswith("to maximum Life"):
+        return "plus max life", property.lstrip("+").split()[0]
+    elif property.endswith("to maximum Mana"):
+        return "plus max mana", property.lstrip("+").split()[0]
+    elif property.endswith("% to Chaos Resistance"):
+        return "plus chaos res", property.lstrip("+").split("%")[0]
+    elif property.endswith("% to Cold Resistance"):
+        return "plus cold res", property.lstrip("+").split("%")[0]
+    elif property.endswith("% to Fire Resistance"):
+        return "plus fire res", property.lstrip("+").split("%")[0]
+    elif property.endswith("% to Lightning Resistance"):
+        return "plus light res", property.lstrip("+").split("%")[0]
+    elif property.endswith("to Intelligence"):
+        return "plus int", property.lstrip("+").split()[0]
+    elif property.endswith("Life Regenerated per second"):
+        return "plus life regen", property.split()[0]
+    elif property.endswith("reduced Attribute Requirements"):
+        return "reduced req", property.split("%")[0]
+    elif property.endswith("increased Stun and Block Recovery"):
+        return "stun recovery", property.split("%")[0]
+    else:
+        print("Unknown property: {}".format(property))
+        return None, None
+
 def get_latest_change_id():
     r = requests.get(CHANGE_URL)
     return r.json()['nextChangeId']
