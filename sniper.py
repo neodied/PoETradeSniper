@@ -202,8 +202,8 @@ body_armour_bases = {"Plate Vest",
                      "Sacrificial Garb",
                      "Golden Mantle"}
 
-body_armour_max_rolls = {"total armour": 2935,
-                         "total evasion": 2849,
+body_armour_max_rolls = {"total AR": 2935,
+                         "total EV": 2849,
                          "total ES": 986,
                          "plus strength": 55,
                          "plus dexterity": 55,
@@ -217,12 +217,42 @@ body_armour_max_rolls = {"total armour": 2935,
                          "stun recovery": 45,
                          "phys reflect": 50}
 
+body_armour_prop_synergy_vector = ["total AR",
+                                   "total EV",
+                                   "total ES",
+                                   "plus str",
+                                   "plus dex",
+                                   "plus int",
+                                   "plus max mana",
+                                   "plus max life",
+                                   "plus chaos res",
+                                   "total ele res",
+                                   "plus life regen",
+                                   "reduced req",
+                                   "stun recovery",
+                                   "phys reflect"
+                                   ]
+
 
 def parse_raw_mod(prop_str=""):
     if prop_str.startswith("Reflects"):
         return "phys reflect", int(prop_str.split()[1])
+    elif prop_str.endswith("% increased Armour"):
+        return "pct inc AR", int(prop_str.split("%")[0])
+    elif prop_str.endswith("% increased Evasion Rating"):
+        return "pct inc EV", int(prop_str.split("%")[0])
     elif prop_str.endswith("% increased Energy Shield"):
         return "pct inc ES", int(prop_str.split("%")[0])
+    elif prop_str.endswith("% increased Armour and Evasion"):
+        return "pct inc AR+EV", int(prop_str.split("%")[0])
+    elif prop_str.endswith("% increased Armour and Energy Shield"):
+        return "pct inc AR+ES", int(prop_str.split("%")[0])
+    elif prop_str.endswith("% increased Evasion and Energy Shield"):
+        return "pct inc EV+ES", int(prop_str.split("%")[0])
+    elif prop_str.endswith("to Armour"):
+        return "plus max ES", int(prop_str.lstrip("+").split()[0])
+    elif prop_str.endswith("to Evasion Rating"):
+        return "plus max ES", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("to maximum Energy Shield"):
         return "plus max ES", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("to maximum Life"):
@@ -239,10 +269,14 @@ def parse_raw_mod(prop_str=""):
         return "plus light res", int(prop_str.lstrip("+").split("%")[0])
     elif prop_str.endswith("% to all Elemental Resistances"):
         return "plus all res", int(prop_str.lstrip("+").split("%")[0])
+    elif prop_str.endswith("to Strength"):
+        return "plus str", int(prop_str.lstrip("+").split()[0])
+    elif prop_str.endswith("to Dexterity"):
+        return "plus dex", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("to Intelligence"):
         return "plus int", int(prop_str.lstrip("+").split()[0])
     elif prop_str.endswith("Life Regenerated per second"):
-        return "plus life regen", int(prop_str.split()[0])
+        return "plus life regen", float(prop_str.split()[0])
     elif prop_str.endswith("reduced Attribute Requirements"):
         return "reduced req", int(prop_str.split("%")[0])
     elif prop_str.endswith("increased Stun and Block Recovery"):
@@ -253,15 +287,15 @@ def parse_raw_mod(prop_str=""):
 
 
 def calc_summary_stats(raw_item):
-    armour = 0
-    evasion = 0
+    AR = 0
+    EV = 0
     ES = 0
     if "properties" in raw_item:
         for prop in raw_item["properties"]:
             if prop["name"] == "Armour":
-                armour = int(prop["values"][0][0])
+                AR = int(prop["values"][0][0])
             elif prop["name"] == "Evasion":
-                evasion = int(prop["values"][0][0])
+                EV = int(prop["values"][0][0])
             elif prop["name"] == "Energy Shield":
                 ES = int(prop["values"][0][0])
 
@@ -276,12 +310,11 @@ def calc_summary_stats(raw_item):
     total_ele_res = total_ele_res + parsed_mods["plus light res"] if "plus light res" in parsed_mods else total_ele_res
 
     summary_stats = parsed_mods
-    summary_stats["total armour"] = armour
-    summary_stats["total evasion"] = evasion
+    summary_stats["total AR"] = AR
+    summary_stats["total EV"] = EV
     summary_stats["total ES"] = ES
     summary_stats["total ele res"] = total_ele_res
 
-    print(summary_stats)
     return summary_stats
 
 
