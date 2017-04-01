@@ -1,6 +1,6 @@
 import requests
-# import json
 import time
+import numpy as np
 
 CHANGE_URL = 'http://api.poe.ninja/api/Data/GetStats'
 POE_API = 'http://www.pathofexile.com/api/public-stash-tabs'
@@ -17,84 +17,84 @@ TYPE_prophecy = 8
 TYPE_relic = 9
 
 sample_ES_body_armour = {
-                    "verified": False,
-                    "w": 2,
-                    "h": 3,
-                    "ilvl": 85,
-                    "icon": "http://web.poecdn.com/image/Art/2DItems/Armours/BodyArmours/BodyStrDexInt1C.png?scale=1&w=2&h=3&v=5a4eb9d863bef835aa3d9cc9224f51a53",
-                    "league": "Legacy",
-                    "id": "23a16eea8b41c3748984eeeffef8860397ab41f893e24f390bd3750adb888711",
-                    "sockets": [
-                        {
-                            "group": 0,
-                            "attr": "I"
-                        },
-                        {
-                            "group": 1,
-                            "attr": "I"
-                        }
-                    ],
-                    "name": "",
-                    "typeLine": "<<set:MS>><<set:M>><<set:S>>Glowing Vaal Regalia of the Walrus",
-                    "identified": True,
-                    "corrupted": False,
-                    "lockedToCharacter": False,
-                    "properties": [
-                        {
-                            "name": "Quality",
-                            "values": [
-                                [
-                                    "+9%",
-                                    1
-                                ]
-                            ],
-                            "displayMode": 0,
-                            "type": 6
-                        },
-                        {
-                            "name": "Energy Shield",
-                            "values": [
-                                [
-                                    "207",
-                                    1
-                                ]
-                            ],
-                            "displayMode": 0,
-                            "type": 18
-                        }
-                    ],
-                    "requirements": [
-                        {
-                            "name": "Level",
-                            "values": [
-                                [
-                                    "68",
-                                    0
-                                ]
-                            ],
-                            "displayMode": 0
-                        },
-                        {
-                            "name": "Int",
-                            "values": [
-                                [
-                                    "194",
-                                    0
-                                ]
-                            ],
-                            "displayMode": 1
-                        }
-                    ],
-                    "explicitMods": [
-                        "+15 to maximum Energy Shield",
-                        "+34% to Cold Resistance"
-                    ],
-                    "frameType": 1,
-                    "x": 3,
-                    "y": 0,
-                    "inventoryId": "Stash21",
-                    "socketedItems": []
-                }
+    "verified": False,
+    "w": 2,
+    "h": 3,
+    "ilvl": 85,
+    "icon": "http://web.poecdn.com/image/Art/2DItems/Armours/BodyArmours/BodyStrDexInt1C.png?scale=1&w=2&h=3&v=5a4eb9d863bef835aa3d9cc9224f51a53",
+    "league": "Legacy",
+    "id": "23a16eea8b41c3748984eeeffef8860397ab41f893e24f390bd3750adb888711",
+    "sockets": [
+        {
+            "group": 0,
+            "attr": "I"
+        },
+        {
+            "group": 1,
+            "attr": "I"
+        }
+    ],
+    "name": "",
+    "typeLine": "<<set:MS>><<set:M>><<set:S>>Glowing Vaal Regalia of the Walrus",
+    "identified": True,
+    "corrupted": False,
+    "lockedToCharacter": False,
+    "properties": [
+        {
+            "name": "Quality",
+            "values": [
+                [
+                    "+9%",
+                    1
+                ]
+            ],
+            "displayMode": 0,
+            "type": 6
+        },
+        {
+            "name": "Energy Shield",
+            "values": [
+                [
+                    "207",
+                    1
+                ]
+            ],
+            "displayMode": 0,
+            "type": 18
+        }
+    ],
+    "requirements": [
+        {
+            "name": "Level",
+            "values": [
+                [
+                    "68",
+                    0
+                ]
+            ],
+            "displayMode": 0
+        },
+        {
+            "name": "Int",
+            "values": [
+                [
+                    "194",
+                    0
+                ]
+            ],
+            "displayMode": 1
+        }
+    ],
+    "explicitMods": [
+        "+15 to maximum Energy Shield",
+        "+34% to Cold Resistance"
+    ],
+    "frameType": 1,
+    "x": 3,
+    "y": 0,
+    "inventoryId": "Stash21",
+    "socketedItems": []
+}
 
 body_armour_bases = {"Plate Vest",
                      "Chestplate",
@@ -205,9 +205,9 @@ body_armour_bases = {"Plate Vest",
 body_armour_max_rolls = {"total AR": 2935,
                          "total EV": 2849,
                          "total ES": 986,
-                         "plus strength": 55,
-                         "plus dexterity": 55,
-                         "plus intelligence": 55,
+                         "plus str": 55,
+                         "plus dex": 55,
+                         "plus int": 55,
                          "plus max mana": 73,
                          "plus max life": 119,
                          "plus chaos res": 35,
@@ -217,21 +217,41 @@ body_armour_max_rolls = {"total AR": 2935,
                          "stun recovery": 45,
                          "phys reflect": 50}
 
-body_armour_prop_synergy_vector = ["total AR",
-                                   "total EV",
-                                   "total ES",
-                                   "plus str",
-                                   "plus dex",
-                                   "plus int",
-                                   "plus max mana",
-                                   "plus max life",
-                                   "plus chaos res",
-                                   "total ele res",
-                                   "plus life regen",
-                                   "reduced req",
-                                   "stun recovery",
-                                   "phys reflect"
-                                   ]
+body_armour_prop_vector = ("total AR",
+                           "total EV",
+                           "total ES",
+                           "plus str",
+                           "plus dex",
+                           "plus int",
+                           "plus max mana",
+                           "plus max life",
+                           "plus chaos res",
+                           "total ele res",
+                           "plus life regen",
+                           "reduced req",
+                           "stun recovery",
+                           "phys reflect")
+
+
+def calc_synergy_score(perfection_list):
+    size = len(body_armour_prop_vector)
+    a = np.ones((size, 1))
+    b = np.array(perfection_list)[np.newaxis]
+
+    perfection_cols = np.dot(a, b)
+    perfection_rows = perfection_cols.transpose()
+    perfection_sum = perfection_cols + perfection_rows + np.ones(perfection_cols.shape)
+    lower_tri = np.tril(perfection_sum)
+
+    try:
+        synergy_power = np.genfromtxt("synergy_table.txt", delimiter="\t")
+    except:
+        raise
+    else:
+        powered_tri = np.power(lower_tri, synergy_power) - np.ones((size, size))
+        score = int(round(np.sum(powered_tri)))
+
+    return score
 
 
 def parse_raw_mod(prop_str=""):
@@ -281,6 +301,8 @@ def parse_raw_mod(prop_str=""):
         return "reduced req", int(prop_str.split("%")[0])
     elif prop_str.endswith("increased Stun and Block Recovery"):
         return "stun recovery", int(prop_str.split("%")[0])
+    elif prop_str == "3% increased Movement Speed":
+        return None, None
     else:
         print("Unknown property: {}".format(prop_str))
         return None, None
@@ -318,24 +340,39 @@ def calc_summary_stats(raw_item):
     return summary_stats
 
 
+def calc_perfection_vector(summary_stats):
+    perfection = []
+    for prop in body_armour_prop_vector:
+        try:
+            perfection.append(summary_stats[prop] / body_armour_max_rolls[prop])
+        except KeyError:
+            perfection.append(0)
+    return perfection
+
+
 def get_latest_change_id():
     r = requests.get(CHANGE_URL)
     return r.json()['nextChangeId']
 
 
 def flag_interesting_item(item):
-    if item['typeLine'] == 'Hubris' and 'note' in item:
-        return True
-    elif item['frameType'] in [TYPE_normal, TYPE_magic, TYPE_rare] and item['typeLine'] in body_armour_bases:
-        print(calc_summary_stats(item))
-        return True
+    if item['frameType'] in [TYPE_normal, TYPE_magic, TYPE_rare] and item['typeLine'] in body_armour_bases:
+        summary = calc_summary_stats(item)
+        perfection_vector = calc_perfection_vector(summary)
+        score = calc_synergy_score(perfection_vector)
+        return score, summary
     else:
-        return False
+        return False, None
 
 
-def format_item(item, stash):
+def notify_item(item, stash):
     return "[{}]{}\t{}\t{}".format(time.strftime('%H:%M:%S'), item["typeLine"], item["note"] if "note" in item else "",
                                    stash["lastCharacterName"], )
+
+
+def output(item, score, prop_summary):
+    props_line = ','.join(['{}:{}'.format(k, v) for k, v in prop_summary.items()])
+    return "\t".join([item["id"], item["typeLine"], str(score), props_line])
 
 
 def main():
@@ -347,7 +384,6 @@ def main():
         start_time = time.time()
         try:
             r = requests.get('{}/?id={}.gz'.format(POE_API, change_id))
-            # print(change_id)
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as e:
@@ -361,10 +397,14 @@ def main():
         download_time = round(time.time() - start_time, 3)
         download_rate = round(size / download_time / 10 ** 6, 3)
 
-        for stash in j['stashes']:
-            for item in stash['items']:
-                if flag_interesting_item(item):
-                    print(format_item(item, stash))
+        with open("scored_items.log", 'a') as outfile:
+            for stash in j['stashes']:
+                for item in stash['items']:
+                    score_summary = flag_interesting_item(item)
+                    if score_summary[0]:
+                        s = output(item, score_summary[0], score_summary[1])
+                        print(s)
+                        outfile.write(s+'\n')
 
         end_time = round(time.time() - start_time - download_time, 3)
 

@@ -7,4 +7,5 @@ setup(name='PoETradeSniper',
       author='Yoshi-',
       install_requires=[
           'requests',
+          'numpy',
       ],)
